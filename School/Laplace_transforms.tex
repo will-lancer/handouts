@@ -1,0 +1,559 @@
+\documentclass[11pt]{article}
+\usepackage[margin=1in]{geometry}
+\usepackage[pdftex]{graphicx}
+\usepackage{amsmath,amssymb,amsthm}
+\usepackage{william}
+\usepackage{graphicx} %pictures
+\usepackage{wrapfig} %for wrapping pictures
+\usepackage{pgfplots} %graphs
+\usepackage[makeroom]{cancel} %for striking out math
+\usepackage{mathrsfs}
+% \usepackage{draftwatermark} % for watermarks
+
+% code for totaling up points
+\usepackage{totcount}
+\newtotcounter{tpts}
+\newtotcounter{cpts}
+\newtotcounter{endpts}
+\newcommand{\clearpts}{\addtocounter{tpts}{\value{cpts}} \setcounter{cpts}{0}}
+\newcommand{\pts}[1]{\clearpts \setcounter{cpts}{#1}}
+\newcommand{\totpts}{\setcounter{endpts}{\totvalue{tpts} + \totvalue{cpts}}\arabic{endpts}}
+
+% formatting for problems and solutions
+\definecolor{ptred}{rgb}{0.7,0.1,0.1}
+\newcommand{\ptfmt}[1]{\textbf{\color{ptred}#1\color{black}}}
+\definecolor{advblue}{rgb}{0.1,0.1,0.7}
+\newcommand{\advanced}{\!\textbf{\color{advblue}[A]\color{black}}\ }
+
+\newtheorem*{solution}{Solution}
+\newtheorem*{answer}{Answer}
+
+% uncomment to hide solutions
+% \usepackage{environ}
+% \NewEnviron{hide}{}
+% \let\solution\hide
+% \let\endsolution\endhide
+% \let\answer\hide
+% \let\endanswer\endhide
+
+% headers and footers
+\usepackage{fancyhdr}
+\pagestyle{fancy}
+\lhead{Will Lancer}
+\chead{}
+\rhead{MAT 308 Notes: Laplace Transforms}
+\lfoot{}
+\cfoot{\thepage}
+\rfoot{}
+\renewcommand{\headrulewidth}{0.4pt}
+\setlength{\headheight}{14pt}
+
+\newcommand{\bigtitle}[1]{
+    \begin{center}
+    \huge \textbf{#1}
+    \end{center}
+}
+
+\makeatletter
+\newtheoremstyle{mystyle}
+{\topsep}               % space above
+{\topsep}               % space below
+{}                      % bodyfont
+{}                      % indent
+{\bfseries}             % headfont
+{}                      % punctuation
+{0.6em}                 % space after head
+{\llap{[\ptfmt{\arabic{cpts}}]\hspace{.6em}}\thmname{#1}\thmnumber{ #2}\thmnote{\normalfont{ (#3)}}{\bfseries .}}  %theoremheadspec
+\theoremstyle{mystyle}
+\newtheorem{pproblem}{Problem}
+\makeatother
+
+\linespread{1.03} % give a little extra room
+\setlength{\parindent}{0.2in} % reduce paragraph indent a bit
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% \SetWatermarkText{\includegraphics{ghostfilip.png}}
+
+\begin{document}
+
+\bigtitle{MAT 308 Handouts: Laplace Transforms}
+
+\noin
+These are the first notes/handout that I will make for
+MAT 308 (maybe the last too; we'll see how this goes).
+They are on Laplace Transforms. Hopefully this helps
+some people.
+\textbf{Note:} if you see any errors (no
+matter how small!), please let me know either via Discord
+(user: $\verb|will.lancer|$), or by email ($\verb|william.lancer@stonybrook.edu|$).
+
+\noin
+\textbf{DISCLAIMER:} I have literally no idea what we
+were taught in class, so this will most likely be off-topic
+in some (a lot of?) areas. It should still be useful, though.
+
+\section{The Basics}
+
+\begin{psidea}{Laplace transforms}{}
+    The \emph{Laplace transform} is a linear transform (also
+    called an operator; same thing)
+    that is defined to act on functions like so
+    \begin{align*}
+        \mathcal{L}[f(t)] = \tilde{f}(s) \equiv \int_0^\infty dt \, f(t) e^{-st}
+    \end{align*}
+    Note the change of \emph{argument} for the function $f(t)$
+    when transforming to $\tilde{f}(s)$\footnote{If you're
+    not used to seeing $\int dt \, f(t)$ as opposed
+    to $\int f(t) \, dt$, just know the two are equivalent,
+    and the latter notation is the standard in theoretical
+    physics.}.
+\end{psidea}
+
+\begin{psremark}{Some general comments about the Laplace transform}{}
+    Some comments on Laplace transforms:
+    \begin{itemize}
+        \item The Laplace transform is a \emph{linear} transform/operator,
+        which means it obeys homogeneity and addivity. Let $f, g$
+        be functions, and $\alpha, \beta \in \reals$. 
+        For a linear transform, we would have that,
+        \begin{align*}
+            \mathcal{L}[\alpha f(t) + \beta g(t)] & = \mathcal{L}[\alpha f(t)] + \mathcal{L}[\beta g(t)] \hspace{1.5cm} \text{(Additivity)}\\
+            & = \alpha \mathcal{L}[f(t)] + \beta \mathcal{L}[g(t)] \hspace{1.5cm} \text{(Homogeneity)}\\
+            & = \alpha \tilde{f}(s) + \beta \tilde{g}(s).
+        \end{align*}
+        \item Again, note the change in argument for the function;
+        it goes from $t \to s$. This is non-trivial, as the function
+        is now pulling its values from a different \emph{domain}
+        than before. This is incredibly useful in physics,
+        where Laplace transforms are often used to switch
+        between the time and frequency domains.
+        \item Note that the Laplace transform is invertible
+        for ``nice''\footnote{I'll actually define what this means later.} functions.
+        We know that an invertible map is just another word for 
+        an \emph{isomorphism}; this tells us that, even though
+        the functions may seem quite different on the surface
+        of it, they actually still maintain the same \emph{structure}
+        as one another.
+    \end{itemize}
+\end{psremark}
+
+\begin{psmotivation}{Why should we care about Laplace transforms?}{}
+    A reasonable thing to ask is, ``Why do we even care about
+    Laplace transforms''? The reason is that, without overstating,
+    \begin{quote}
+        \emph{Laplace transforms are the most powerful general technique
+        for solving ordinary differential equations there is.}
+    \end{quote}
+    If you had the choice for only \emph{one} method for solving
+    differential equations, you would be best off if you chose
+    Laplace transforms. Due to their structure, and their
+    easy rules, they can easily deal with extremely complicated
+    ordinary differential equations.
+    The main strength of Lapace transforms is
+    that \emph{they turn differential equations
+    into algebra}. As you know, algebra and basic
+    integration\footnote{Better yet, just looking
+    stuff up in a table} is much easier to do than solving
+    differential equations. Another bonus for Laplace
+    transforms is, as you will see later, the boundary
+    conditions for the differential equation are \emph{built
+    into} the transform. Common Laplace transforms W.
+\end{psmotivation}
+
+\noin
+\color{black} I think the best way to get a feel for this
+is through examples. Here are the canonical ones:
+
+\begin{psexample}{}{}
+    \begin{hwproblem}
+        Find the Laplace transform for $1$. Generalize this
+        to any constant.
+    \end{hwproblem}
+    \begin{solution}
+        We use the definition of the Laplace transform.
+        Recall
+        \begin{align*}
+            \mathcal{L}[f(t)] = \tilde{f}(s) \equiv \int_0^\infty dt \, f(t) e^{-st}.
+        \end{align*}
+        For $f(t) = 1$, we have, (remember that you have to take the limit
+        of upper bound to infinity instead of actually ``integrating
+        at infinity'')\footnote{I will be sloppy with doing this 
+        for the rest of the handout.}
+        \begin{align*}
+            \tilde{f}(s) & = \lim_{B \to \infty} \int_0^B dt \, e^{-st}\\
+            & = \lim_{B \to \infty} - \left[ \frac{e^{-st}}{s} \right]_0^B.
+        \end{align*}
+        If $s > 0$, then this integral converges. Thus,
+        we only define our integral for $s > 0$.
+        We would then have that,
+        \begin{align*}
+            \tilde{f}(s) & = \lim_{B \to \infty} - \left[ \frac{e^{-st}}{s}\right]_0^B\\
+            & = \lim_{B \to \infty} \left[ \frac{e^{-st}}{s} \right]_B^0\\
+            & = \frac{1}{s} - \frac{0}{s} = \frac{1}{s}.
+        \end{align*}
+        Thus our answer for the Laplace transform of $f(t) = 1$
+        is $\mathcal{L}(f(t)) = \tilde{f}(s) = 1/s$.
+        To generalize this to any constant, use the
+        \emph{linearity} of the Laplace transform to your
+        advantage. Let $a \in \reals$.
+        \begin{align*}
+            \mathcal{L}[a] & = \tilde{f}(s) = \int_0^\infty dt \, a e^{-st}\\
+            & =  a \int_0^\infty dt \, e^{-st} = a\mathcal{L}(1) = \frac{a}{s}.
+        \end{align*}
+        Which is our answer. Notice how powerful linearity is; we will continually
+        use this property to our advantage in the future.
+    \end{solution}
+    \begin{hwproblem}
+        What is the Laplace transform of $e^{at}$ where $a \in \complex$?
+    \end{hwproblem}
+    \begin{solution}
+        This is going to be one of the most important Laplace
+        transform identities we will ever use.
+        We're actually going to answer
+        a \emph{different} question instead. What
+        is the value of
+        \begin{align*}
+            \mathcal{L}[e^{at}f(t)],
+        \end{align*}
+        for some arbitrary function $f(t)$? Let's
+        give it a shot. Using the definition of
+        the Laplace transform gives us,
+        \begin{align*}
+            \mathcal{L}[e^{at}f(t)] = \tilde{f}(s) 
+            & = \int_0^\infty dt \, e^{at}f(t) e^{-st}\\
+            & =  \int_0^\infty dt \, f(t) e^{-(s - a)t}\\
+            & = \tilde{f}(s - a).
+        \end{align*}
+        Which is our answer. Notice the change of variables
+        this gives us; this is due to the additivity of exponents
+        for multiplying exponentials. Notice that if we let $f(t) = 1$,
+        we would be able to find the Laplace transform for $e^{at}$.
+        Recall that $\mathcal{L}[1] = \tilde{f}(s) = 1/s$.
+        Computing $\mathcal{L}[e^{at}f(t)]$ with $f(t) = 1$
+        gives us,
+        \begin{align*}
+            \mathcal{L}[e^{at}f(t)] = \mathcal{L}[e^{at}(1)]
+            = \tilde{f}(s - a) = \frac{1}{s - a}, \hspace{0.5cm} s > 0
+        \end{align*}
+        Which is our answer. As you can see, this general
+        method is quite powerful for computing Laplace transforms
+        of general exponentials. This process is sometimes
+        called \emph{s-shift}.
+    \end{solution}
+    \begin{hwproblem}
+        What are the Laplace transforms of $\cos{(t)}$ and $\sin{(t)}$?
+    \end{hwproblem}
+    \begin{solution}
+        Hmmmm. This feels difficult. Trying to integrate something like,
+        \begin{align*}
+            \mathcal{L}[\cos{(t)}] & = \tilde{f}(s) = \int_0^\infty dt \, \cos{(t)}e^{-st}
+        \end{align*}
+        seems kind of ugly. Question: is there any way
+        we can \emph{rewrite} $\cos{(t)}$ to somehow
+        make use of our previous techniques?
+        Preferably something to do with exponentials
+        and constants, because they're easy.
+        The answer is \emph{yes}, and it comes
+        from a familiar identity:
+        \begin{align*}
+            \textbf{Euler's Identity:} \hspace{1cm} e^{i t} = \cos{(t)} + i \sin{(t)}.
+        \end{align*}
+        Solving for cosine from this gives us,
+        \begin{align*}
+            \cos{(at)} & = \frac{e^{iat} - e^{-iat}}{2}.
+        \end{align*}
+        Well well well$\ldots$ we know how to solve
+        this! We know the Laplace transform of $e^{iat}$
+        is (by the previous question),
+        \begin{align*}
+            \mathcal{L}[e^{iat}] & = \tilde{f}(s - ia) = \frac{1}{s - ia}.
+        \end{align*}
+        We now have everything we need to solve our
+        problem.
+        \begin{align*}
+            \mathcal{L}[\cos{(at)}] & = \mathcal{L}\left[ \frac{e^{iat} - e^{-iat}}{2} \right]\\
+            & = \frac{1}{2} \left( \mathcal{L}[e^{iat}] + \mathcal{L}[e^{-iat}] \right) \hspace{1cm} \text{(Linearity)}\\
+            & = \frac{1}{2} \left( \frac{1}{s - ia} + \frac{1}{s + ia} \right)\\
+            & = \frac{1}{2} \left( \frac{2s}{s^2 + a^2}\right)\\
+            & = \frac{s}{s^2 + a^2}, \hspace{0.5cm} \Re{s} > 0
+        \end{align*}
+        Which is our answer. We can follow an almost identical
+        process for sine, which the reader is encouraged
+        to do (the following relation might help $\winky$)
+        \begin{align*}
+            \sin{(at)} = \frac{e^{iat} - e^{-iat}}{2i}.
+        \end{align*}
+        Going through the calculations gives us (as
+        the reader should verify),
+        \begin{align*}
+            \mathcal{L}[\sin{(t)}] = \tilde{f}(s - a) = \frac{a}{s^2 + a^2}, \hspace{0.5cm} \Re{s} > 0
+        \end{align*}
+        We can also derive the same results by taking
+        the real and imaginary parts of $e^{ia}$,
+        which is an exercise for the reader;
+        I will put them in formal problems so
+        you're more motivated to do it.
+    \end{solution}
+        \begin{hwproblem}
+            Derive the Laplace transform for $\cos{(t)}$ by taking
+            the real part of the Laplace transform for $e^{ia}$.
+        \end{hwproblem}
+        \begin{hwproblem}
+            Derive the Laplace transform for $\sin{(t)}$ by taking
+            the imaginary part of the Laplace transform for $e^{ia}$.
+        \end{hwproblem}
+        I'm watching you$\ldots$ you better do these problems $\straightface$.
+\end{psexample}
+
+\section{Solving differential equations} 
+Using Laplace transforms to solve differential
+equations is a three-step process,
+\begin{align*}
+    \text{Transform} \to \text{Rearrange} \to \text{Inverse Transform}.
+\end{align*}
+The only part you don't know yet is the inverse
+transform, which we'll learn now. Btw, the ``rearrange''
+part is just algebra, as you'll see.
+\begin{psidea}{Inverse Laplace Transform}{}
+    The inverse Laplace transform is just the process
+    of going from $\tilde{f}(s) \to f(t)$. You do
+    this by recognizing what the Laplace transform
+    is, and then making the proper inverse transform.
+\end{psidea}
+
+\begin{psidea}{Partial fractions}{}
+    The main way you're going to get the Laplace
+    transform into a form that you can easily
+    recognize is by simplifying rational functions,
+    which you should remember from middle/high school.
+    If you don't remember how to do this, read \href{https://www.mathsisfun.com/algebra/partial-fractions.html}{this}.
+\end{psidea}
+
+\begin{psremark}{When do Laplace transforms exist?}{}
+    When do Laplace transforms exist? This is a reasonable
+    question, because \emph{in the definition} of the Laplace
+    transform is an integral to infinity; these kinds of integrals
+    sometimes have the bad habit of equating to infinity.
+    So, when are they defined? The answer is when the
+    function you're transforming, $f(t)$, is of
+    \emph{exponential order}. What does this mean?
+    It means that the scaling of $f(t)$ with $t$
+    can be expressed as,
+    \begin{align*}
+        |f(t)| \leq Ce^{kt}.
+    \end{align*}
+    This is equivalent to saying that
+    \begin{align*}
+        I = \int_0^\infty dt \, |f(t) e^{-st}| < \infty.
+    \end{align*}
+    Waterman probably won't give us examples that don't
+    converge, but it's important to know that you can't
+    apply the Laplace transform to everything (just
+    most things).
+\end{psremark}
+
+\begin{psexample}{Some easy examples}{}
+    \begin{hwproblem}
+        Find the inverse Laplace transform of
+        \begin{align*}
+            \frac{12}{s}.
+        \end{align*}
+    \end{hwproblem}
+    \begin{solution}
+        Recognizing this as the Laplace transform of
+        $12$ gives us our answer,
+        \begin{align*}
+            \frac{12}{s} = 12 \cdot \frac{1}{s} = \mathcal{L}[12] \implies \mathcal{L}^{-1}[12/s] = 12.
+        \end{align*}
+    \end{solution}
+    \begin{hwproblem}
+        Find the inverse Laplace transform of
+        \begin{align*}
+            \frac{69}{s^2 + s - 6}
+        \end{align*}
+    \end{hwproblem}
+    \begin{solution}
+        We must first do partial fraction decomposition.
+        Doing so gives us,
+        \begin{align*}
+            \frac{69}{s^2 + s - 6} = \frac{69}{(s + 3)(s - 2)} \implies 69 = A(s - 2) + B(s + 3)
+        \end{align*}
+        Solving for this gives us $A = -69/5$ and $B = 69/5$.
+        Our problem then turns into,
+        \begin{align*}
+            \frac{69}{s^2 + s - 6} = \frac{-65}{5(s + 3)} + \frac{69}{5(s - 2)}.
+        \end{align*}
+        Recognizing these as exponetials gives us our answer,
+        \begin{align*}
+            \frac{-65}{5(s + 3)} + \frac{69}{5(s - 2)} = - \frac{69}{5} \frac{1}{s + 3} + \frac{69}{5} \frac{1}{s - 2} = - \frac{69}{5} \mathcal{L}[e^{-3t}] + \frac{69}{5} \mathcal{L}[e^{2t}]\\
+            \implies
+            \mathcal{L}^{-1}\left[ \frac{-65}{5(s + 3)} + \frac{69}{5(s - 2)} \right] = - \frac{69}{5} e^{-3t} + \frac{69}{5} e^{2t}.
+        \end{align*}
+    \end{solution}
+\end{psexample}
+
+\begin{psidea}{Laplace transform of a derivative}{}
+    The Laplace transform of the time derivative
+    of a function $f(t)$ is defined as,
+    \begin{align*}
+        \mathcal{L}[f'(t)] = s\tilde{f}(s) - f(0).
+    \end{align*}
+    This can be recursively applied to give a formula
+    for $n$ time derivatives,
+    \begin{align*}
+        \mathcal{L}[f^{(n)}(t)] = s^n \tilde{f}(s) + \sum_{k = 1}^{n} (-1) s^{n - k} f^{k - 1}(0).
+    \end{align*}
+\end{psidea}
+
+\begin{psexample}{Time derivatives}{}
+    \begin{hwproblem}
+        Prove the two formulas given in the idea above. \textbf{Hint:} use
+        integration by parts.
+    \end{hwproblem}
+    \begin{solution}
+        I'm going to show the first one; the second one follows
+        by induction applied to the approach you take to solve
+        for the first. Integrating by parts gives us,
+        \begin{align*}
+            \mathcal{L}[f'(t)] & = \int_0^\infty dt \, f'(t) e^{-st}\\
+            & = [e^{-st} f(t) ]_0^\infty - (-s) \int_0^\infty dt \, f(t) e^{-st}\\
+            & = s\tilde{f}(s) - f(0).
+        \end{align*}
+        The reader should prove the second part. Feel free to
+        not even do induction; just compute the case of $\mathcal{L}[f''(t)]$
+        and guess a generalization from there.
+    \end{solution}
+\end{psexample}
+
+
+\begin{psexample}{A less trivial example}{}
+    \begin{hwproblem}
+        Find the specific solution to,
+        \begin{align*}
+            x''(t) + x(t) = \cos{2t}
+        \end{align*}
+        with $x(0) = 0$ and $x'(0) = 1$.
+    \end{hwproblem}   
+\end{psexample}
+
+\begin{pssolution}{}{}
+    Laplace transform both sides,
+    \begin{align*}
+       \mathcal{L}[x''(t) + x(t)] = \mathcal{L}[\cos{2t}]\\
+       s^2 \tilde{x}(s) - sx(0) + x'(0) + \tilde{x}(s) = \frac{s}{s^2 + 4}.
+    \end{align*}
+    Plug in the initial conditions,
+    \begin{align*}
+        s^2 \tilde{x}(s) - 1 + \tilde{x}(s) = \frac{s}{s^2 + 4}.
+    \end{align*}
+    Solve for $\tilde{x}(s)$ and use partial fractions,
+    \begin{align*} 
+        \tilde{x}(s) & = \frac{s}{(s^2 + 1)(s^2 + 4)} + \frac{1}{s^2 + 1}\\
+        & = \frac{1}{3} \frac{s}{s^2 + 1} - \frac{1}{3}\frac{s}{s^2 + 4} + \frac{1}{s^2 + 1}.
+    \end{align*}
+    Inverse transforming this gives us,
+    \begin{align*}
+        x(t) = \frac{1}{3}\cos{t} - \frac{1}{3} \cos{(2t)} + \sin{t}.
+    \end{align*}
+\end{pssolution}
+
+\section{Convolution}
+
+I'm going to throw the definition of
+convolution at you, and then explain it.
+\begin{psidea}{Convolution}{}
+    We define the convolution of two functions $f(t)$
+    and $g(t)$ as follows,
+    \begin{align*}
+        f * g \equiv \int_0^t du \, f(u) g(t - u).
+    \end{align*}
+    Although it's not evident in the definition,
+    convolution is commutative, so $f * g = g * f$.
+\end{psidea}
+
+\begin{psremark}{Some convoluted comments about convolution}{}
+    \begin{itemize}
+        \item Where the hell did that definition come from? To answer
+        that question, let's answer a different question:
+        \begin{hwproblem}
+            What function $h(t)$ would I have to Laplace 
+            transform to have $\tilde{h}(s) = \tilde{f}(s)\tilde{g}(s)$?
+            As in, what $h(t)$ gives us the following equivalence?
+            \begin{align*}
+                \int_0^\infty dt \, h(t) e^{-st} = \tilde{f}(s)\tilde{g}(s).
+            \end{align*}
+        \end{hwproblem}
+        \begin{solution}
+        Hmmm. Let's go back to the definitions of $\tilde{f}(s)$ and $\tilde{g}(s)$
+        and see if anything pans out.
+        \begin{align*}
+            & \tilde{f}(s) \equiv \int_0^\infty du \, f(u)e^{-su} & \tilde{g}(s) \equiv \int_0^\infty dv \, g(v)e^{-sv}. 
+        \end{align*}
+        We let the integration variable not be $t$ for a reason you will
+        see in a second; it doesn't matter what it is, as it's a dummy variable.
+        Take the product of these functions,
+        \begin{align*}
+            \tilde{f}(s)\tilde{g}(s) & = \int_0^\infty du \, f(u)e^{-su} \cdot \int_0^\infty dv \, g(v)e^{-sv}\\
+            & = \int_0^\infty dv \int_0^\infty du \, f(u)g(v)e^{-s(u + v)}.
+        \end{align*}
+        We want to make this double integral look something like a Laplace transform,
+        so let's make a change of variables, $t = u + v$. Subbing this in gives us,
+        \begin{align*}
+            \int_0^\infty dv \int_0^\infty du \, f(u)g(v)e^{-s(u + v)}
+            & = \int_0^\infty dt \underbrace{\int_0^t du \, f(u)g(t - u)}_{h(t)} e^{-st}.
+        \end{align*}
+        As you can see, if we define $h(t) \equiv \int_0^t du \, f(u) g(t - u)$,
+        we get our desired result: $\mathcal{L}[h(t)] = \tilde{f}(s)\tilde{g}(s)$.
+        Very cool.
+        \end{solution}
+        \item The commutativity of the convolution is clear
+        from the secondary meaning of the convolution; $f * g$
+        is a function such that $\mathcal{L}[f * g] = \tilde{f}(s)\tilde{g}(s)$.
+        As you can see, if we switch $f * g$ to $g * f$, 
+        we simply commute the terms on the RHS, and this 
+        is equivalent to the original convolution.
+        \begin{align*}
+            \mathcal{L}[f * g] = \tilde{f}(s)\tilde{g}(s) = \tilde{g}(s)\tilde{f}(s) = \mathcal{L}[g * f].
+        \end{align*}
+    \end{itemize}
+\end{psremark}
+
+\begin{psexample}{Some examples}{}
+    \begin{hwproblem}
+        Find the convolution of $t^2$ and $t$.
+    \end{hwproblem}
+    \begin{solution}
+        Using the definition gives us,
+        \begin{align*}
+            f * g = t^2 * t & = \int_0^t du \, u^2 (t - u)\\
+            & = \int_0^t du \, u^2t - u^3\\
+            & = \frac{u^3 t}{3} - \frac{u^4}{4} \Bigg|_0^t = \frac{t^4}{12}.
+        \end{align*}
+    \end{solution}
+    \begin{hwproblem}
+        Find the convolution of $f(t)$ and $1$.
+    \end{hwproblem}
+    \begin{solution}
+        Using the definition gives us,
+        \begin{align*}
+            f * g = f(t) * 1 & = \int_0^t du \, f(u)\\
+            & = F(t) - F(0).
+        \end{align*}
+    \end{solution}
+\end{psexample}
+
+\section{Parting comments}
+
+Hopefully you're more comfortable with Laplace
+transforms now as compared to when you started
+this handout. I want to emphasize that Laplace
+transforms are \emph{simple}; they have fairly
+few computational rules, and the annoying stuff
+can just be looked up in a table somewhere.
+They're one of the most powerful tools you're
+going to have in your differential equations
+toolbelt from now on; make use of it.
+Good luck on the MAT 308 homework \salute.
+
+
+\end{document}

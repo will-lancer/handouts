@@ -1,2 +1,2 @@
-# handouts
-Handouts for the homies
+# Handouts
+Handouts for the homies.
